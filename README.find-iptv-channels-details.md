@@ -1,12 +1,22 @@
 # find-iptv-channels-details.py
 
-This script queries an xtream provider’s live channel list and searches for specific channels or categories. It then notes the number of EPG programs available, whether they have catch-up capabilities, the codec and resolution for each channel, and the frame rate.
+This script queries an xtream provider’s live channel list and searches for
+specific channels or categories. It then notes the number of EPG programs
+available, whether they have catch-up capabilities, the codec and resolution for
+each channel, and the frame rate.
 
-The script caches each day the live streams and categories data into two files in order to decrease excessive server calls.  You can ignore the files and force an actuial server request each time by using the --nocache option  
+The script caches each day the live streams and categories data into two files
+in order to decrease excessive server calls.  You can ignore the files and force
+an actuial server request each time by using the --nocache option  
 
-You are able to search for a combination of channel names and categories and see if the channel has archive capabilities (value shown is > 0). For each found channel, you can specify then if want to get for each found channel wether there is EPG data for it, as well as query the codec , resoution and frame rate for the channel
+You are able to search for a combination of channel names and categories and see
+if the channel has archive capabilities (value shown is > 0). For each found
+channel, you can specify then if want to get for each found channel wether there
+is EPG data for it, as well as query the codec , resoution and frame rate for
+the channel
 
-There is also a parameter (--save FILENAME.CSV) to save the output into a csv file  
+There is also a parameter (--save FILENAME.CSV) to save the output into a csv
+file  
 
 ## Sample Output
 

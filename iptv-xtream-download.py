@@ -1,14 +1,16 @@
+import argparse
+import json
 import os
 import sys
-import argparse
-import requests
 import time
-import json
+from datetime import datetime
 from pathlib import Path
 from xml.dom.minidom import parseString
-from datetime import datetime
+
+import requests
 
 DEBUG_MODE = False  # Default: Debugging is off
+
 
 def debug_log(message):
     """
@@ -16,6 +18,7 @@ def debug_log(message):
     """
     if DEBUG_MODE:
         print(f"[DEBUG] {message}")
+
 
 def save_data_to_file(url, save_path, headers, retries, sleep_time, debug, format_data):
     """
@@ -26,7 +29,9 @@ def save_data_to_file(url, save_path, headers, retries, sleep_time, debug, forma
         try:
             response = requests.get(url, headers=headers, timeout=30)
             response.raise_for_status()
-            debug_log(f"Response from server ({url}): {response.text[:500]}")  # Print first 500 characters
+            debug_log(
+                f"Response from server ({url}): {response.text[:500]}"
+            )  # Print first 500 characters
 
             if format_data:
                 try:
@@ -57,6 +62,7 @@ def save_data_to_file(url, save_path, headers, retries, sleep_time, debug, forma
                 time.sleep(sleep_time)
     return False
 
+
 def save_epg_data(url, save_path, headers, retries, sleep_time, debug, format_data):
     """
     Fetches EPG data from the given URL, formats it (if required), and saves it as an XML file.
@@ -66,7 +72,9 @@ def save_epg_data(url, save_path, headers, retries, sleep_time, debug, format_da
         try:
             response = requests.get(url, headers=headers, timeout=30)
             response.raise_for_status()
-            debug_log(f"Response from server ({url}): {response.text[:500]}")  # Print first 500 characters
+            debug_log(
+                f"Response from server ({url}): {response.text[:500]}"
+            )  # Print first 500 characters
 
             if debug:
                 print(f"Retrieving EPG data from {url}...")
@@ -80,11 +88,15 @@ def save_epg_data(url, save_path, headers, retries, sleep_time, debug, format_da
                     dom = parseString(response.content)
                     pretty_xml_as_string = dom.toprettyxml(indent="  ")
 
-                    with open(save_path.with_suffix(".xml"), "w", encoding="utf-8") as f:
+                    with open(
+                        save_path.with_suffix(".xml"), "w", encoding="utf-8"
+                    ) as f:
                         f.write(pretty_xml_as_string)
 
                     if debug:
-                        print(f"Formatted EPG data successfully saved to {save_path}.xml")
+                        print(
+                            f"Formatted EPG data successfully saved to {save_path}.xml"
+                        )
                 except Exception as e:
                     if debug:
                         print(f"Error formatting XML data: {e}")
@@ -101,10 +113,13 @@ def save_epg_data(url, save_path, headers, retries, sleep_time, debug, format_da
                 print(f"Attempt {attempt + 1} failed for EPG URL: {url}, Error: {e}")
             attempt += 1
             if attempt > retries:
-                print(f"Failed to retrieve EPG data from {url} after {retries} retries.")
+                print(
+                    f"Failed to retrieve EPG data from {url} after {retries} retries."
+                )
             else:
                 time.sleep(sleep_time)
     return False
+
 
 def ensure_http_prefix(server):
     """
@@ -113,6 +128,7 @@ def ensure_http_prefix(server):
     if not server.startswith(("http://", "https://")):
         return f"http://{server}"
     return server
+
 
 def anonymize_user_info(file_path, debug):
     """
@@ -137,15 +153,20 @@ def anonymize_user_info(file_path, debug):
     except Exception as e:
         print(f"Failed to anonymize user info: {e}")
 
+
 def prune_old_versions(server_dir, prune_count, debug):
     """
     Keeps the most recent `prune_count` directories and deletes older ones.
     """
     subdirs = [d for d in server_dir.iterdir() if d.is_dir()]
-    subdirs.sort(key=lambda d: d.stat().st_mtime, reverse=True)  # Sort by modification time (most recent first)
+    subdirs.sort(
+        key=lambda d: d.stat().st_mtime, reverse=True
+    )  # Sort by modification time (most recent first)
 
     if len(subdirs) > prune_count:
-        print(f"Found {len(subdirs)} subdirectories under {server_dir}. Pruning to : {prune_count}")
+        print(
+            f"Found {len(subdirs)} subdirectories under {server_dir}. Pruning to : {prune_count}"
+        )
         to_delete = subdirs[prune_count:]
         for old_dir in to_delete:
             if debug:
@@ -159,26 +180,49 @@ def prune_old_versions(server_dir, prune_count, debug):
     else:
         print(f"Nothing pruned as only {len(subdirs)} versions available")
 
+
 def main():
     global DEBUG_MODE
 
-    parser = argparse.ArgumentParser(description="Program to identify channels from iptv providers")
+    parser = argparse.ArgumentParser(
+        description="Program to identify channels from iptv providers"
+    )
     parser.add_argument("--server", required=True, help="The URL of the Xtream server.")
-    parser.add_argument("--user", required=True, help="The username for authentication.")
+    parser.add_argument(
+        "--user", required=True, help="The username for authentication."
+    )
     parser.add_argument("--pw", required=True, help="The password for authentication.")
-    parser.add_argument("--savedir", required=True, help="The directory to save the retrieved files.")
-    parser.add_argument("--agent", default="Mozilla/5.0", help="User-Agent for accessing the server.")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode.")  # Debug flag
-    parser.add_argument("--retries", type=int, default=3, help="Number of retries (default: 3).")
-    parser.add_argument("--saveraw", action="store_true", help="Keep username/password in user_info.json.")
-    parser.add_argument("--format", action="store_false", help="Save data in reformatted form.")
-    parser.add_argument("--prune", type=int, help="Keep only the most recent <prune> versions.")
+    parser.add_argument(
+        "--savedir", required=True, help="The directory to save the retrieved files."
+    )
+    parser.add_argument(
+        "--agent", default="Mozilla/5.0", help="User-Agent for accessing the server."
+    )
+    parser.add_argument(
+        "--debug", action="store_true", help="Enable debug mode."
+    )  # Debug flag
+    parser.add_argument(
+        "--retries", type=int, default=3, help="Number of retries (default: 3)."
+    )
+    parser.add_argument(
+        "--saveraw",
+        action="store_true",
+        help="Keep username/password in user_info.json.",
+    )
+    parser.add_argument(
+        "--format", action="store_false", help="Save data in reformatted form."
+    )
+    parser.add_argument(
+        "--prune", type=int, help="Keep only the most recent <prune> versions."
+    )
 
     args = parser.parse_args()
 
     # Print the date and time when the program is run
     run_time = datetime.now().strftime("%Y-%m-%d %H:%M")
-    print(f"\n\niptv-xtream-download - Running for server {args.server} on {run_time}\n")
+    print(
+        f"\n\niptv-xtream-download - Running for server {args.server} on {run_time}\n"
+    )
 
     # Enable debug mode if the --debug flag is present
     DEBUG_MODE = args.debug
@@ -217,12 +261,16 @@ def main():
     for key, url in endpoints.items():
         file_path = timestamp_dir / f"{key}.json"
         print(f"Retrieving {key}")
-        save_data_to_file(url, file_path, headers, args.retries, 30, args.debug, args.format)
+        save_data_to_file(
+            url, file_path, headers, args.retries, 30, args.debug, args.format
+        )
         if key == "user_info" and not args.saveraw:
             anonymize_user_info(file_path, args.debug)
 
-    print(f"Retrieving EPG data")
-    save_epg_data(epg_url, epg_save_path, headers, args.retries, 30, args.debug, args.format)
+    print("Retrieving EPG data")
+    save_epg_data(
+        epg_url, epg_save_path, headers, args.retries, 30, args.debug, args.format
+    )
 
     print(f"\nData saved in '{timestamp_dir}'\n\n")
 
